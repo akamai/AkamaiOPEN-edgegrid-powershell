@@ -41,7 +41,7 @@ Invoke-AkamaiOPEN -Method GET -ClientToken "foo" -ClientAccessToken "foo" -Clien
 developer.akamai.com
 #>
 
-param([Parameter(Mandatory=$true)][string]$Method, [Parameter(Mandatory=$true)][string]$ClientToken, [Parameter(Mandatory=$true)][string]$ClientAccessToken, [Parameter(Mandatory=$true)][string]$ClientSecret, [Parameter(Mandatory=$true)][string]$ReqURL, [Parameter][object]$Body)
+param([Parameter(Mandatory=$true)][string]$Method, [Parameter(Mandatory=$true)][string]$ClientToken, [Parameter(Mandatory=$true)][string]$ClientAccessToken, [Parameter(Mandatory=$true)][string]$ClientSecret, [Parameter(Mandatory=$true)][string]$ReqURL, [Parameter(Mandatory=$true)][object]$Body)
 
 #Function to generate HMAC SHA256 Base64
 Function Crypto ($secret, $message)
