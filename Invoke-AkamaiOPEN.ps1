@@ -14,8 +14,8 @@
   limitations under the License.
   
   Author: Josh Hicks
-  	  Solutions Architect
-	  Akamai Technologies Inc.
+			  Solutions Architect
+			  Akamai Technologies Inc.
 #>
 
 <#
@@ -41,7 +41,7 @@ Invoke-AkamaiOPEN -Method GET -ClientToken "foo" -ClientAccessToken "foo" -Clien
 developer.akamai.com
 #>
 
-param([Parameter(Mandatory=$true)][string]$Method, [Parameter(Mandatory=$true)][string]$ClientToken, [Parameter(Mandatory=$true)][string]$ClientAccessToken, [Parameter(Mandatory=$true)][string]$ClientSecret, [Parameter(Mandatory=$true)][string]$ReqURL, [Parameter(Mandatory=$true)][object]$Body)
+param([Parameter(Mandatory=$true)][string]$Method, [Parameter(Mandatory=$true)][string]$ClientToken, [Parameter(Mandatory=$true)][string]$ClientAccessToken, [Parameter(Mandatory=$true)][string]$ClientSecret, [Parameter(Mandatory=$true)][string]$ReqURL, [Parameter(Mandatory=$false)][string]$Body)
 
 #Function to generate HMAC SHA256 Base64
 Function Crypto ($secret, $message)
@@ -60,17 +60,6 @@ If (($ReqURL -as [System.URI]).AbsoluteURI -eq $null -or $ReqURL -notmatch "luna
 {    
 	throw "Error: Ivalid Request URI"
 } 
-
-#Body Verification
-If (($Body -ne $null))
-{
-	$Body_Size = [System.Text.Encoding]::Unicode.GetByteCount($Body)
-	
-	If (($Body_Size -gt "2048"))
-	{
-		throw "Error: Body size greater than maximum allowed(2048 bytes)"
-	}
-}
 
 #Sanitize Method param
 $Method = $Method.ToUpper()
@@ -129,7 +118,8 @@ $Headers.Add('Authorization',$AuthorizationHeader)
 #Add additional headers if POSTing or PUTing
 If (($Method -ceq "POST") -or ($Method -ceq "PUT"))
 {
-	$Headers.Add('max-body','2048')
+    $Body_Size = [System.Text.Encoding]::UTF8.GetByteCount($Body)
+	$Headers.Add('max-body',$Body_Size)
 	$Headers.Add('Content-Type','application/json')
 }
 
