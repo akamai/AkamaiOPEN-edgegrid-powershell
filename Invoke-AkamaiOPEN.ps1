@@ -14,8 +14,8 @@
   limitations under the License.
   
   Author: Josh Hicks
-			  Solutions Architect
-			  Akamai Technologies Inc.
+  Solutions Architect
+  Akamai Technologies Inc.
 #>
 
 <#
@@ -118,7 +118,7 @@ $Headers.Add('Authorization',$AuthorizationHeader)
 #Add additional headers if POSTing or PUTing
 If (($Method -ceq "POST") -or ($Method -ceq "PUT"))
 {
-    $Body_Size = [System.Text.Encoding]::UTF8.GetByteCount($Body)
+	$Body_Size = [System.Text.Encoding]::UTF8.GetByteCount($Body)
 	$Headers.Add('max-body',$Body_Size)
 	$Headers.Add('Content-Type','application/json')
 }
