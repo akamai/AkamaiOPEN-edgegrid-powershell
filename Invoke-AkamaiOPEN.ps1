@@ -119,24 +119,19 @@ $Headers.Add('Authorization',$AuthorizationHeader)
 If (($Method -ceq "POST") -or ($Method -ceq "PUT"))
 {
 	$Body_Size = [System.Text.Encoding]::UTF8.GetByteCount($Body)
-	$Headers.Add('max-body',$Body_Size)
-	$Headers.Add('Content-Type','application/json')
+	$Headers.Add('max-body',$Body_Size.ToString())
 }
 
 #Check for valid Methods and required switches
 If (($Method -ceq "POST") -and ($Body -ne $null))
 {
 	#Invoke API call with POST and return
-	$ErrorActionPreference = 'SilentlyContinue'
-	Invoke-RestMethod -Method $Method -Uri $ReqURL -SessionVariable api
-	$api.Headers.set_Item('Expect', '')
-	$ErrorActionPreference = 'Continue'
-	Invoke-RestMethod -Method $Method -WebSession $api -Uri $ReqURL -Headers $Headers -Body $Body
+	Invoke-RestMethod -Method $Method -WebSession $api -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
 }
 elseif  (($Method -ceq "PUT") -and ($Body -ne $null))
 {
 	#Invoke API call with PUT and return
-	Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -Body $Body
+	Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
 }
 elseif (($Method -ceq "GET") -or ($Method -ceq "DELETE"))
 {
