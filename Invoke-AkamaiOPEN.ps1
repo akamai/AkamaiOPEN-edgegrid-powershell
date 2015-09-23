@@ -1,18 +1,18 @@
 <#
   Copyright 2013 Akamai Technologies, Inc. All Rights Reserved.
-  
+
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
-  
+
       http://www.apache.org/licenses/LICENSE-2.0
-  
+
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
-  
+
   Author: Josh Hicks
   Solutions Architect
   Akamai Technologies Inc.
@@ -51,15 +51,15 @@ Function Crypto ($secret, $message)
 	$hmac = new-object System.Security.Cryptography.HMACSHA256((,$keyByte))
 	[byte[]] $hashmessage = $hmac.ComputeHash($messageBytes)
 	$Crypt = [System.Convert]::ToBase64String($hashmessage)
-	
+
 	return $Crypt
 }
 
 #ReqURL Verification
-If (($ReqURL -as [System.URI]).AbsoluteURI -eq $null -or $ReqURL -notmatch "luna.akamaiapis.net") 
-{    
+If (($ReqURL -as [System.URI]).AbsoluteURI -eq $null -or $ReqURL -notmatch "akamaiapis.net")
+{
 	throw "Error: Ivalid Request URI"
-} 
+}
 
 #Sanitize Method param
 $Method = $Method.ToUpper()
@@ -81,7 +81,7 @@ if (($Body -ne $null) -and ($Method -ceq "POST"))
 {
 	$Body_SHA256 = [System.Security.Cryptography.SHA256]::Create()
 	$Post_Hash = [System.Convert]::ToBase64String($Body_SHA256.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($Body.ToString())))
-	
+
 	$SignatureData += "`t`t" + $Post_Hash + "`t"
 }
 else
@@ -125,7 +125,12 @@ If (($Method -ceq "POST") -or ($Method -ceq "PUT"))
 #Check for valid Methods and required switches
 If (($Method -ceq "POST") -and ($Body -ne $null))
 {
-	#Invoke API call with POST and return
+  #Invoke API call with POST and return
+  $ErrorActionPreference = 'SilentlyContinue'
+  Invoke-RestMethod -Method $Method -Uri $ReqURL -SessionVariable api
+  #Whack Expect: 100-continue header which OPEN does not support
+  $api.Headers.set_Item('Expect', '')
+  $ErrorActionPreference = 'Continue'
 	Invoke-RestMethod -Method $Method -WebSession $api -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
 }
 elseif  (($Method -ceq "PUT") -and ($Body -ne $null))
