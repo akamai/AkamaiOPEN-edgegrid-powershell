@@ -126,12 +126,19 @@ If (($Method -ceq "POST") -or ($Method -ceq "PUT"))
 If (($Method -ceq "POST") -and ($Body -ne $null))
 {
   #Invoke API call with POST and return
-  $ErrorActionPreference = 'SilentlyContinue'
-  Invoke-RestMethod -Method $Method -Uri $ReqURL -SessionVariable api
+  try 
+  {
+    Invoke-RestMethod -Method $Method -Uri $ReqURL -SessionVariable api -ErrorAction Stop
+  }
+  catch 
+  {
+    # do nothing / suppress error output.
+    # would like to find a better way to get rid of the header vs making the bad request.
+  }
+  
   #Whack Expect: 100-continue header which OPEN does not support
   $api.Headers.set_Item('Expect', '')
-  $ErrorActionPreference = 'Continue'
-	Invoke-RestMethod -Method $Method -WebSession $api -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
+  Invoke-RestMethod -Method $Method -WebSession $api -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
 }
 elseif  (($Method -ceq "PUT") -and ($Body -ne $null))
 {
