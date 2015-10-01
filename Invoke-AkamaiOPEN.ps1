@@ -1,3 +1,4 @@
+#Requires -Version 3.0
 <#
   Copyright 2013 Akamai Technologies, Inc. All Rights Reserved.
 
@@ -120,18 +121,16 @@ If (($Method -ceq "POST") -or ($Method -ceq "PUT"))
 {
 	$Body_Size = [System.Text.Encoding]::UTF8.GetByteCount($Body)
 	$Headers.Add('max-body',$Body_Size.ToString())
+
+    # turn off the "Expect: 100 Continue" header
+    # as it's not supported on the Akamai side.
+    [System.Net.ServicePointManager]::Expect100Continue = $false
 }
 
 #Check for valid Methods and required switches
 If (($Method -ceq "POST") -and ($Body -ne $null))
 {
-  #Invoke API call with POST and return
-  $ErrorActionPreference = 'SilentlyContinue'
-  Invoke-RestMethod -Method $Method -Uri $ReqURL -SessionVariable api
-  #Whack Expect: 100-continue header which OPEN does not support
-  $api.Headers.set_Item('Expect', '')
-  $ErrorActionPreference = 'Continue'
-	Invoke-RestMethod -Method $Method -WebSession $api -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
+    Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
 }
 elseif  (($Method -ceq "PUT") -and ($Body -ne $null))
 {
