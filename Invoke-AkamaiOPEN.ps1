@@ -130,17 +130,38 @@ If (($Method -ceq "POST") -or ($Method -ceq "PUT"))
 #Check for valid Methods and required switches
 If (($Method -ceq "POST") -and ($Body -ne $null))
 {
-    Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
+    try
+    {
+      Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
+    }
+    catch
+    {
+      $_.Exception.Response
+    }
 }
 elseif  (($Method -ceq "PUT") -and ($Body -ne $null))
 {
-	#Invoke API call with PUT and return
-	Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
+  try
+  {
+	  #Invoke API call with PUT and return
+	  Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
+  }
+  catch
+  {
+    $_.Exception.Response
+  }
 }
 elseif (($Method -ceq "GET") -or ($Method -ceq "DELETE"))
 {
-	#Invoke API call with GET or DELETE and return
-	Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers
+  try
+  {
+  	#Invoke API call with GET or DELETE and return
+	  Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers
+  }
+  catch
+  {
+    $_.Exception.Response
+  }
 }
 else
 {
