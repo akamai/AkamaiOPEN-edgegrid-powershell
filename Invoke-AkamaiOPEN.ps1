@@ -42,7 +42,14 @@ Invoke-AkamaiOPEN -Method GET -ClientToken "foo" -ClientAccessToken "foo" -Clien
 developer.akamai.com
 #>
 
-param([Parameter(Mandatory=$true)][string]$Method, [Parameter(Mandatory=$true)][string]$ClientToken, [Parameter(Mandatory=$true)][string]$ClientAccessToken, [Parameter(Mandatory=$true)][string]$ClientSecret, [Parameter(Mandatory=$true)][string]$ReqURL, [Parameter(Mandatory=$false)][string]$Body)
+param(
+    [Parameter(Mandatory=$true)][string]$Method,
+    [Parameter(Mandatory=$true)][string]$ClientToken,
+    [Parameter(Mandatory=$true)][string]$ClientAccessToken,
+    [Parameter(Mandatory=$true)][string]$ClientSecret,
+    [Parameter(Mandatory=$true)][string]$ReqURL,
+    [Parameter(Mandatory=$false)][string]$Body
+    )
 
 #Function to generate HMAC SHA256 Base64
 Function Crypto ($secret, $message)
@@ -78,7 +85,7 @@ $Nonce = [GUID]::NewGuid()
 $SignatureData = $Method + "`thttps`t"
 $SignatureData += $ReqArray[2] + "`t" + $ReqArray[3] + $ReqArray[4]
 
-if (($Body -ne $null) -and ($Method -ceq "POST"))
+if (($Body -ne "") -and ($Method -ceq "POST"))
 {
 	$Body_SHA256 = [System.Security.Cryptography.SHA256]::Create()
 	$Post_Hash = [System.Convert]::ToBase64String($Body_SHA256.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($Body.ToString())))
@@ -117,7 +124,7 @@ $Headers = @{}
 $Headers.Add('Authorization',$AuthorizationHeader)
 
 #Add additional headers if POSTing or PUTing
-If (($Method -ceq "POST") -or ($Method -ceq "PUT"))
+If ( ($Method -ceq "POST" -or $Method -ceq "PUT") -and ($Body -ne "") )
 {
 	$Body_Size = [System.Text.Encoding]::UTF8.GetByteCount($Body)
 	$Headers.Add('max-body',$Body_Size.ToString())
@@ -128,7 +135,7 @@ If (($Method -ceq "POST") -or ($Method -ceq "PUT"))
 }
 
 #Check for valid Methods and required switches
-If (($Method -ceq "POST") -and ($Body -ne $null))
+If (($Method -ceq "POST") -and ($Body -ne ""))
 {
     try
     {
@@ -139,7 +146,18 @@ If (($Method -ceq "POST") -and ($Body -ne $null))
       $_.Exception.Response
     }
 }
-elseif  (($Method -ceq "PUT") -and ($Body -ne $null))
+elseif (($Method -ceq "POST") -and ($Body -eq ""))
+{
+    try
+    {
+      Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -ContentType 'application/json'
+    }
+    catch
+    {
+      $_.Exception.Response
+    }
+}
+elseif  (($Method -ceq "PUT") -and ($Body -ne ""))
 {
   try
   {
