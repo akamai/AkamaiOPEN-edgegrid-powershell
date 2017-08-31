@@ -43,7 +43,9 @@ developer.akamai.com
 #>
 
 param(
-    [Parameter(Mandatory=$true)][string]$Method,
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("GET", "PUT", "POST", "DELETE")]
+    [string]$Method,
     [Parameter(Mandatory=$true)][string]$ClientToken,
     [Parameter(Mandatory=$true)][string]$ClientAccessToken,
     [Parameter(Mandatory=$true)][string]$ClientSecret,
@@ -85,16 +87,16 @@ $Nonce = [GUID]::NewGuid()
 $SignatureData = $Method + "`thttps`t"
 $SignatureData += $ReqArray[2] + "`t" + $ReqArray[3] + $ReqArray[4]
 
-if (($Body -ne "") -and ($Method -ceq "POST"))
+if ($Body)
 {
-	$Body_SHA256 = [System.Security.Cryptography.SHA256]::Create()
-	$Post_Hash = [System.Convert]::ToBase64String($Body_SHA256.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($Body.ToString())))
+  $Body_SHA256 = [System.Security.Cryptography.SHA256]::Create()
+  $Post_Hash = [System.Convert]::ToBase64String($Body_SHA256.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($Body.ToString())))
 
-	$SignatureData += "`t`t" + $Post_Hash + "`t"
+  $SignatureData += "`t`t" + $Post_Hash + "`t"
 }
 else
 {
-	$SignatureData += "`t`t`t"
+  $SignatureData += "`t`t`t"
 }
 
 $SignatureData += "EG1-HMAC-SHA256 "
@@ -124,64 +126,36 @@ $Headers = @{}
 $Headers.Add('Authorization',$AuthorizationHeader)
 
 #Add additional headers if POSTing or PUTing
-If ( ($Method -ceq "POST" -or $Method -ceq "PUT") -and ($Body -ne "") )
+If ($Body)
 {
-	$Body_Size = [System.Text.Encoding]::UTF8.GetByteCount($Body)
-	$Headers.Add('max-body',$Body_Size.ToString())
+  $Body_Size = [System.Text.Encoding]::UTF8.GetByteCount($Body)
+  $Headers.Add('max-body',$Body_Size.ToString())
 
-    # turn off the "Expect: 100 Continue" header
-    # as it's not supported on the Akamai side.
-    [System.Net.ServicePointManager]::Expect100Continue = $false
+  # turn off the "Expect: 100 Continue" header
+  # as it's not supported on the Akamai side.
+  [System.Net.ServicePointManager]::Expect100Continue = $false
 }
 
 #Check for valid Methods and required switches
-If (($Method -ceq "POST") -and ($Body -ne ""))
-{
-    try
-    {
-      Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
+if ($Method -eq "PUT" -or $Method -eq "POST") {
+  try {
+    if ($Body) {
+      Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Headers -Body $Body -ContentType 'application/json'
     }
-    catch
-    {
-      $_.Exception.Response
+    else {
+      Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Headers -ContentType 'application/json'
     }
-}
-elseif (($Method -ceq "POST") -and ($Body -eq ""))
-{
-    try
-    {
-      Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -ContentType 'application/json'
-    }
-    catch
-    {
-      $_.Exception.Response
-    }
-}
-elseif  (($Method -ceq "PUT") -and ($Body -ne ""))
-{
-  try
-  {
-	  #Invoke API call with PUT and return
-	  Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
   }
-  catch
-  {
+  catch {
     $_.Exception.Response
   }
 }
-elseif (($Method -ceq "GET") -or ($Method -ceq "DELETE"))
-{
-  try
-  {
-  	#Invoke API call with GET or DELETE and return
-	  Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers
+else {
+  try {
+    #Invoke API call with GET or DELETE and return
+    Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Headers
   }
-  catch
-  {
+  catch {
     $_.Exception.Response
   }
-}
-else
-{
-	throw "Error: Invalid -Method specified or missing required parameter"
 }
