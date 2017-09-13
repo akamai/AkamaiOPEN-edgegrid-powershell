@@ -140,10 +140,10 @@ If ($Body)
 if ($Method -eq "PUT" -or $Method -eq "POST") {
   try {
     if ($Body) {
-      Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Headers -Body $Body -ContentType 'application/json'
+      Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -Body $Body -ContentType 'application/json'
     }
     else {
-      Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Headers -ContentType 'application/json'
+      Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers -ContentType 'application/json'
     }
   }
   catch {
@@ -153,7 +153,7 @@ if ($Method -eq "PUT" -or $Method -eq "POST") {
 else {
   try {
     #Invoke API call with GET or DELETE and return
-    Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Headers
+    Invoke-RestMethod -Method $Method -Uri $ReqURL -Headers $Headers
   }
   catch {
     $_.Exception.Response
