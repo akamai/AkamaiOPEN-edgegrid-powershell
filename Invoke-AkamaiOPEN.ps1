@@ -50,7 +50,8 @@ param(
     [Parameter(Mandatory=$true)][string]$ClientAccessToken,
     [Parameter(Mandatory=$true)][string]$ClientSecret,
     [Parameter(Mandatory=$true)][string]$ReqURL,
-    [Parameter(Mandatory=$false)][string]$Body
+    [Parameter(Mandatory=$false)][string]$Body,
+    [Parameter(Mandatory=$false)][string]$MaxBody = 131072
     )
 
 #Function to generate HMAC SHA256 Base64
@@ -87,10 +88,17 @@ $Nonce = [GUID]::NewGuid()
 $SignatureData = $Method + "`thttps`t"
 $SignatureData += $ReqArray[2] + "`t" + $ReqArray[3] + $ReqArray[4]
 
-if ($Body)
+#Add body to signature. Truncate if body is greater than max-body (Akamai default is 131072). PUT Medthod does not require adding to signature.
+
+if ($Body -and $Method -eq "POST")
 {
   $Body_SHA256 = [System.Security.Cryptography.SHA256]::Create()
-  $Post_Hash = [System.Convert]::ToBase64String($Body_SHA256.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($Body.ToString())))
+  if($Body.Length -gt $MaxBody){
+    $Post_Hash = [System.Convert]::ToBase64String($Body_SHA256.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($Body.Substring(0,$MaxBody))))
+  }
+  else{
+    $Post_Hash = [System.Convert]::ToBase64String($Body_SHA256.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($Body)))
+  }
 
   $SignatureData += "`t`t" + $Post_Hash + "`t"
 }
@@ -128,9 +136,6 @@ $Headers.Add('Authorization',$AuthorizationHeader)
 #Add additional headers if POSTing or PUTing
 If ($Body)
 {
-  $Body_Size = [System.Text.Encoding]::UTF8.GetByteCount($Body)
-  $Headers.Add('max-body',$Body_Size.ToString())
-
   # turn off the "Expect: 100 Continue" header
   # as it's not supported on the Akamai side.
   [System.Net.ServicePointManager]::Expect100Continue = $false
