@@ -57,19 +57,19 @@ param(
 #Function to generate HMAC SHA256 Base64
 Function Crypto ($secret, $message)
 {
-	[byte[]] $keyByte = [System.Text.Encoding]::ASCII.GetBytes($secret)
-	[byte[]] $messageBytes = [System.Text.Encoding]::ASCII.GetBytes($message)
-	$hmac = new-object System.Security.Cryptography.HMACSHA256((,$keyByte))
-	[byte[]] $hashmessage = $hmac.ComputeHash($messageBytes)
-	$Crypt = [System.Convert]::ToBase64String($hashmessage)
+  [byte[]] $keyByte = [System.Text.Encoding]::ASCII.GetBytes($secret)
+  [byte[]] $messageBytes = [System.Text.Encoding]::ASCII.GetBytes($message)
+  $hmac = new-object System.Security.Cryptography.HMACSHA256((,$keyByte))
+  [byte[]] $hashmessage = $hmac.ComputeHash($messageBytes)
+  $Crypt = [System.Convert]::ToBase64String($hashmessage)
 
-	return $Crypt
+  return $Crypt
 }
 
 #ReqURL Verification
 If (($ReqURL -as [System.URI]).AbsoluteURI -eq $null -or $ReqURL -notmatch "akamaiapis.net")
 {
-	throw "Error: Ivalid Request URI"
+  throw "Error: Ivalid Request URI"
 }
 
 #Sanitize Method param
@@ -142,6 +142,7 @@ If ($Body)
 }
 
 #Check for valid Methods and required switches
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 if ($Method -eq "PUT" -or $Method -eq "POST") {
   try {
     if ($Body) {
