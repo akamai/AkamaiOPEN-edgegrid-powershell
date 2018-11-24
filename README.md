@@ -3,6 +3,8 @@ Invoke-AkamaiOPEN
 
 EdgeGrid Powershell
 
+NOTICE : PowerShell EdgeGrid Client has been deprecated and will reach End of Life soon. For more information, please see our [Announcement](https://developer.akamai.com/blog/2018/11/13/akamai-powershell-edgegrid-client-end-life-notice)
+
 ## SUMMARY
 
 Invoke-AkamaiOPEN is a Powershell 'authorization' wrapper around Invoke-RestMethod. It adds the required EdgeGrid signature to a normal Invoke-RestMethod request.
